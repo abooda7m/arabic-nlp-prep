@@ -192,13 +192,7 @@ nltk_data/
 .DS_Store
 ```
 
----
 
-## License
-
-MIT License. ضع نص الترخيص في `LICENSE` إن رغبت.
-
----
 
 ## Acknowledgments
 
@@ -214,3 +208,4 @@ MIT License. ضع نص الترخيص في `LICENSE` إن رغبت.
   python -c "import nltk; nltk.download('stopwords', download_dir='nltk_data'); nltk.download('punkt', download_dir='nltk_data')"
   ```
 - تأكد من تفعيل الـvenv وتشغيل الأمر من نفس مجلد السكربت.
+
