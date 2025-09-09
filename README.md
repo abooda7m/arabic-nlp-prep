@@ -1,6 +1,6 @@
 # arabic-nlp-prep
 
-Arabic NLP preprocessing & quick EDA (print-only) using NLTK.  
+Arabic NLP preprocessing and quick EDA (print-only) using NLTK.  
 Pipeline: Normalization → Tokenization → Stopwords (+extra, normalization-aware) → Stemming (ISRI/Snowball/none) → Top-K word frequencies → Bigram collocations (PMI) → Regex (emails/dates/numbers).  
 All outputs are printed to stdout. No files are written.
 
@@ -8,23 +8,23 @@ All outputs are printed to stdout. No files are written.
 
 ## Why this tool?
 
-- توحيد **preprocessing** العربي بشكل قياسي قبل أي نموذج IR/Classification/RAG.
-- **Normalization-aware stopwords**: نطبّع قائمة NLTK بنفس سياسة التطبيع حتى لا تفلت كلمات مثل "على" التي تصبح "علي".
-- استكشاف سريع للداتا (quick EDA): Top-K و PMI لاستخراج **keywords** و**key phrases**.
-- خفيف، يعتمد على NLTK فقط، ويضمن تنزيل corpora محليًا بجانب السكربت.
+- Provides a standard Arabic text preprocessing baseline before any IR/Classification/RAG pipeline.
+- Normalization-aware stopwords: the NLTK stopword list is normalized using the same policy as your text so matches are reliable (e.g., \"على\" → \"علي\" after normalization).
+- Fast exploratory analysis (quick EDA): Top-K words and PMI bigrams to surface keywords and key phrases.
+- Lightweight dependency footprint (NLTK only) and self-contained data directory next to the script.
 
 ---
 
 ## Features
 
-- **Normalization**: إزالة diacritics/tatweel، توحيد alef، تحويل hamza، خيار ta marbuta.
-- **Tokenization (regex)**: التقاط الكلمات العربية فقط، لا أرقام ولا ترقيم.
-- **Stopwords**: من NLTK + إمكانية إضافة domain stopwords عبر CLI، مع تطبيع متوافق.
-- **Stemming**: اختيار ISRI أو Snowball أو تعطيله تمامًا.
-- **Statistics**: Top-K word frequencies بعد التنقية.
-- **Collocations**: Bigram PMI مع درجات، وعَتبة تكرار `min_freq` لتقليل الضجيج.
-- **Regex utilities**: استخراج emails/dates، وأرقام تستثني أجزاء التواريخ.
-- **Print-only**: لا يحفظ ملفات، مناسب للـdemo والـEDA السريع.
+- **Normalization**: remove diacritics and tatweel, unify alef forms, normalize hamza, optional ta marbuta handling.
+- **Tokenization (regex)**: extract Arabic-letter tokens only (no digits or punctuation).
+- **Stopwords**: load NLTK Arabic stopwords, normalize them with the same policy, and merge extra domain stopwords via CLI.
+- **Stemming**: choose ISRI (aggressive), Snowball (lighter), or disable entirely.
+- **Statistics**: Top-K word frequencies after cleaning.
+- **Collocations**: Bigram PMI with scores; configurable frequency threshold `min_freq` to reduce noise.
+- **Regex utilities**: extract emails and dates; extract numbers while excluding those that are part of date expressions.
+- **Print-only**: no files are written; ideal for demos and quick EDA.
 
 ---
 
@@ -32,7 +32,7 @@ All outputs are printed to stdout. No files are written.
 
 - Python 3.10+
 - `nltk>=3.8.1`
-- اتصال إنترنت أول مرة فقط لتنزيل NLTK corpora (يتم حفظها داخل `./nltk_data` بجوار السكربت)
+- Internet connection on first run to download NLTK corpora (saved to `./nltk_data` next to the script)
 
 `requirements.txt`:
 ```
@@ -59,23 +59,23 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
-ضع الملف باسم `nlp_ar_prep.py` في جذر المشروع.
+Put the script in the project root as `nlp_ar_prep.py`.
 
 ---
 
 ## Quickstart
 
-نص افتراضي مضمّن:
+Built-in sample text:
 ```bash
 python nlp_ar_prep.py
 ```
 
-نص مخصّص مباشرة:
+Custom inline text:
 ```bash
-python nlp_ar_prep.py --text "هذا نص عربي للتجربة في NLP" --min_freq 1
+python nlp_ar_prep.py --text "Arabic sample text for NLP testing" --min_freq 1
 ```
 
-من ملف:
+From file:
 ```bash
 python nlp_ar_prep.py --file my_text.txt --topk 30 --min_freq 2
 ```
@@ -86,27 +86,27 @@ python nlp_ar_prep.py --file my_text.txt --topk 30 --min_freq 2
 
 | Option | Type / Values | Default | Purpose |
 |---|---|---:|---|
-| `--text` | str |  | تمرير النص مباشرة |
-| `--file` | path |  | قراءة النص من ملف UTF-8 |
-| `--topk` | int | 20 | عدد أعلى الكلمات تكرارًا بعد التنقية |
-| `--min_freq` | int | 2 | حد أدنى لتكرار الـbigrams قبل حساب PMI |
-| `--keep_ta_marbuta` | flag | off | إبقاء `ة` كما هي وعدم تحويلها إلى `ه` |
-| `--extra_stop` | str (comma-sep) | "" | إضافة domain stopwords (مثال: `"وفق,يجب,تطبيق"`) |
-| `--min_len` | int | 2 | تجاهل التوكنز الأقصر من هذا الطول |
-| `--stem` | `isri` \| `snowball` \| `none` | `isri` | اختيار نوع الـstemming أو تعطيله |
+| `--text` | str |  | Pass input text directly |
+| `--file` | path |  | Read input text from a UTF-8 file |
+| `--topk` | int | 20 | Number of top frequent tokens to print |
+| `--min_freq` | int | 2 | Minimum bigram frequency before PMI is computed |
+| `--keep_ta_marbuta` | flag | off | Keep `ة` (do not convert to `ه`) |
+| `--extra_stop` | str (comma-separated) | "" | Add domain stopwords (e.g., `"وفق,يجب,تطبيق"`) |
+| `--min_len` | int | 2 | Drop tokens shorter than this length |
+| `--stem` | `isri` \| `snowball` \| `none` | `isri` | Stemming algorithm or disable |
 
-أمثلة:
+Examples:
 ```bash
-# استخراج عبارات حتى مع نص قصير
+# Show bigrams even on short text
 python nlp_ar_prep.py --min_freq 1
 
-# إضافة stopwords للدومين
+# Add domain stopwords
 python nlp_ar_prep.py --extra_stop "وفق,يجب,تطبيق,ضوابط,المعلومات,الالتزام,الممارسات,تواصل,عدد"
 
-# مناسب لـRAG/Embeddings (بدون stemming، مع إبقاء التاء المربوطة)
+# RAG/Embeddings-friendly (no stemming, preserve ta marbuta)
 python nlp_ar_prep.py --stem none --keep_ta_marbuta --min_len 2
 
-# Snowball بدل ISRI
+# Use Snowball instead of ISRI
 python nlp_ar_prep.py --stem snowball
 ```
 
@@ -114,62 +114,62 @@ python nlp_ar_prep.py --stem snowball
 
 ## What the script prints
 
-- **Summary**: عدد tokens قبل وبعد إزالة stopwords، عدد stems، نوع الـstemmer المستخدم.
-- **Top frequent tokens**: أعلى الكلمات تكرارًا (بعد التنقية).
-- **Top bigram collocations (PMI)**: أفضل العبارات الثنائية مع درجات PMI.
-- **Regex extraction**: Emails / Dates / Numbers (والأرقام تستثني أجزاء التواريخ).
-- **Stemming examples**: توضيح تأثير الـstemmer على بعض الكلمات العربية.
+- **Summary**: token counts before and after stopword removal, number of stems, and which stemmer was used.
+- **Top frequent tokens**: most frequent tokens after cleaning.
+- **Top bigram collocations (PMI)**: best bigrams with PMI scores.
+- **Regex extraction**: emails, dates, and numbers (excluding date parts).
+- **Stemming examples**: a small demo showing the effect of the selected stemmer.
 
 ---
 
 ## How it works (internals)
 
 1) **Normalization**  
-   - إزالة diacritics (`[\u064B-\u0652]`) وtatweel (`\u0640`)  
-   - توحيد أشكال الألف: `إ أ آ ا → ا`  
-   - `ى → ي` ، `ؤ → و` ، `ئ → ي`  
-   - خيار `ta marbuta`: تحويل `ة → ه` إلا إذا فعّلت `--keep_ta_marbuta`  
-   الهدف: تقليل التباين الكتابي لرفع دقة المطابقة لاحقًا.
+   - Remove diacritics (`[\u064B-\u0652]`) and tatweel (`\u0640`)  
+   - Unify alef forms: `إ أ آ ا → ا`  
+   - `ى → ي`, `ؤ → و`, `ئ → ي`  
+   - Optional ta marbuta normalization: `ة → ه` unless `--keep_ta_marbuta` is set  
+   Purpose: reduce orthographic variance so downstream matching and statistics are more reliable.
 
 2) **Tokenization (regex)**  
-   - `[ء-غُ-ي]+` لإرجاع **سلاسل عربية فقط** (بدون أرقام/ترقيم/لاتيني).
+   - Pattern: `[\u0621-\u063A\u064F-\u064A]+` to return Arabic-only tokens (no digits, punctuation, or Latin).
 
 3) **Stopwords (normalization-aware)**  
-   - تحميل NLTK Arabic stopwords ثم **تطبيعها بنفس السياسة**  
-   - دمج `--extra_stop` بعد تطبيعها  
-   - إزالة stopwords وفلترة التوكنز القصيرة بـ `--min_len`
+   - Load NLTK Arabic stopwords and normalize them using the same policy as the input.
+   - Merge `--extra_stop` after normalizing those entries as well.
+   - Remove stopwords and any tokens shorter than `--min_len`.
 
 4) **Stemming (optional)**  
-   - `ISRIStemmer`: rule-based قوي، غالبًا يرجّع قريب من الجذر الثلاثي (قد يعمل over-stemming).  
-   - `SnowballStemmer("arabic")`: أخف.  
-   - `none`: بدون stemming (مفضل لـRAG/Embeddings).
+   - `ISRIStemmer`: rule-based and relatively aggressive; often approximates triliteral roots (may over-stem).
+   - `SnowballStemmer("arabic")`: lighter stemming.
+   - `none`: bypass stemming (often preferred for RAG/embedding scenarios).
 
 5) **Statistics**  
-   - `Counter` لأعلى الكلمات تكرارًا بعد التنقية.  
-   - `BigramCollocationFinder` + `PMI`: استخراج **key phrases**، مع `min_freq` لتقليل تحيز PMI للأزواج النادرة.
+   - `Counter` for top frequent tokens after cleaning.
+   - `BigramCollocationFinder` + `PMI` for extracting key phrases; `min_freq` controls rare bigram noise.
 
 6) **Regex utilities**  
-   - Emails: نمط عام.  
-   - Dates: `YYYY-MM-DD` و `DD/MM/YYYY`.  
-   - Numbers: تُستخرج ثم تُستبعد أي أرقام تقع داخل spans التواريخ.
+   - Emails: general-purpose regex.
+   - Dates: `YYYY-MM-DD` and `DD/MM/YYYY`.
+   - Numbers: extracted with a filter that excludes numeric substrings belonging to dates.
 
 ---
 
 ## When to use which settings
 
 - **RAG/Embeddings**: `--stem none --keep_ta_marbuta`  
-  الهدف الحفاظ على الشكل والمعنى، مع Normalization خفيف لإزالة الضوضاء.
-- **IR/TF-IDF/Classification**: `--stem isri` أو `--stem snowball`، و `--min_len 2` أو `3`.  
-- **كوربس صغير وتبغى عبارات**: `--min_freq 1` لإظهار PMI حتى لو التكرار قليل.
-- **Compliance domain**: استخدم `--extra_stop` لتوسيع stopwords العامة.
+  Preserve surface forms and meaning while doing light normalization.
+- **IR/TF-IDF/Traditional Classification**: `--stem isri` or `--stem snowball`, and `--min_len 2` (or 3).  
+- **Small corpora but you want collocations**: `--min_freq 1` to expose PMI bigrams on short texts.
+- **Compliance-like domains**: use `--extra_stop` to extend the general NLTK stoplist.
 
 ---
 
 ## Limitations
 
-- ISRI أحيانًا يعمل over-stemming؛ جُرّب Snowball أو عطّل stemming.
-- NLTK stopwords عامة؛ يفضل إضافة domain stopwords.
-- Regex بسيطة عمدًا؛ للـPII المتقدم استخدم أنماط إضافية أو NER.
+- ISRI may over-stem; prefer Snowball or disable depending on your task.
+- NLTK Arabic stopwords are generic; extend with domain stopwords via `--extra_stop`.
+- Regex patterns are intentionally simple; for robust PII use stricter patterns or NER.
 
 ---
 
@@ -192,7 +192,13 @@ nltk_data/
 .DS_Store
 ```
 
+---
 
+## License
+
+MIT License. Place the license text in `LICENSE` if desired.
+
+---
 
 ## Acknowledgments
 
@@ -203,9 +209,8 @@ nltk_data/
 ## Troubleshooting
 
 - `LookupError: stopwords not found`  
-  شغّل السكربت مرة مع إنترنت أو نزّل يدويًا داخل المشروع:
+  Ensure first run has internet access or install manually inside the project:
   ```bash
   python -c "import nltk; nltk.download('stopwords', download_dir='nltk_data'); nltk.download('punkt', download_dir='nltk_data')"
   ```
-- تأكد من تفعيل الـvenv وتشغيل الأمر من نفس مجلد السكربت.
-
+- Confirm your virtual environment is active and run the script from the same directory where it resides.
